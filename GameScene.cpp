@@ -93,7 +93,7 @@ void GameScene::Draw()
 	Object3d::PreDraw(cmdList);
 
 	// 3Dオブクジェクトの描画
-	object3d->Draw();
+	//object3d->Draw();
 
 	/// <summary>
 	/// ここに3Dオブジェクトの描画処理を追加できる
