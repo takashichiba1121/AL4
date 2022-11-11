@@ -5,8 +5,8 @@
 #include<sstream>
 #include<string>
 #include<vector>
-using namespace std;
 
+using namespace std;
 
 #pragma comment(lib, "d3dcompiler.lib")
 
@@ -36,11 +36,8 @@ XMFLOAT3 Object3d::target = { 0, 0, 0 };
 XMFLOAT3 Object3d::up = { 0, 1, 0 };
 D3D12_VERTEX_BUFFER_VIEW Object3d::vbView{};
 D3D12_INDEX_BUFFER_VIEW Object3d::ibView{};
-//Object3d::VertexPosNormalUv Object3d::vertices[vertexCount];
-//unsigned short Object3d::indices[planeCount * 3];
 std::vector<Object3d::VertexPosNormalUv> Object3d::vertices;
 std::vector<unsigned short> Object3d::indices;
-
 
 void Object3d::StaticInitialize(ID3D12Device* device, int window_width, int window_height)
 {
@@ -95,9 +92,6 @@ Object3d* Object3d::Create()
 	if (object3d == nullptr) {
 		return nullptr;
 	}
-	//スケールをセット
-	float scale_val = 20.0f;
-	object3d->scale = { scale_val,scale_val,scale_val };
 
 	// 初期化
 	if (!object3d->Initialize()) {
@@ -106,6 +100,9 @@ Object3d* Object3d::Create()
 		return nullptr;
 	}
 
+	//スケールをセット
+	float scale_val = 20;
+	object3d->scale = { scale_val,scale_val,scale_val };
 
 	return object3d;
 }
@@ -401,10 +398,12 @@ void Object3d::LoadTexture()
 
 void Object3d::CreateModel()
 {
+	HRESULT result = S_FALSE;
+
 	//ファイルストリーム
 	std::fstream file;
 	//.objファイルを開く
-	file.open("Resources/triangle_tex/triangle_tex.obj");
+	file.open("Resources/triangle/triangle.obj");
 	//ファイルオープン失敗をチェック
 	if (file.fail()) {
 		assert(0);
@@ -433,33 +432,10 @@ void Object3d::CreateModel()
 			//座標データに追加
 			positions.emplace_back(position);
 			////頂点データに追加
-			//VertexPosNormalUv vertex{};
-			//vertex.pos = position;
-			//vertices.emplace_back(vertex);
+			VertexPosNormalUv vertex{};
+			vertex.pos = position;
+			vertices.emplace_back(vertex);
 		}
-		//先頭文字列がvtならテクスチャ
-		if (key == "vt")
-		{
-			//U,V成分読み込み
-			XMFLOAT2 texcoord{};
-			line_stream >> texcoord.x;
-			line_stream >> texcoord.y;
-			//V方向反転
-			texcoord.y = 1.0f - texcoord.y;
-			//テクスチャ座標データに追加
-			texcoords.emplace_back(texcoord);
-		}
-		//先頭文字列がvnなら法線ベクトル
-		if (key == "vn") {
-			//X.Y,Z成分読み込む
-			XMFLOAT3 normal{};
-			line_stream >> normal.x;
-			line_stream >> normal.y;
-			line_stream >> normal.z;
-			//法線ベクトルデータに追加
-			normals.emplace_back(normal);
-		}
-
 		//先頭文字列がfならポリゴン(三角形)
 		if (key == "f")
 		{
@@ -469,27 +445,15 @@ void Object3d::CreateModel()
 
 				//頂点インデックス一個分の文字列をストリームに変換して解析しやすくする
 				std::istringstream index_stream(index_string);
-				unsigned short indexPosition, indexNormal, indexTexcoord;
+				unsigned short indexPosition;
 				index_stream >> indexPosition;
-				index_stream.seekg(1, ios_base::cur);//スラッシュを飛ばす
-				index_stream >> indexTexcoord;
-				index_stream.seekg(1, ios_base::cur);//スラッシュを飛ばす
-				index_stream >> indexNormal;
-				//頂点インデックスに追加
-				VertexPosNormalUv vertex{};
-				vertex.pos = positions[indexPosition - 1];
-				vertex.normal = normals[indexNormal - 1];
-				vertex.uv = texcoords[indexTexcoord - 1];
-				vertices.emplace_back(vertex);
 				//インデックスデータの追加
-				indices.emplace_back((unsigned short)indices.size());
+				indices.emplace_back(indexPosition - 1);
 			}
 		}
 	}
 	//ファイルを閉じる
 	file.close();
-
-	HRESULT result = S_FALSE;
 
 	std::vector<VertexPosNormalUv> realVertices;
 	//// 頂点座標の計算（重複あり）
@@ -627,6 +591,7 @@ void Object3d::CreateModel()
 	VertexPosNormalUv* vertMap = nullptr;
 	result = vertBuff->Map(0, nullptr, (void**)&vertMap);
 	if (SUCCEEDED(result)) {
+		/*memcpy(vertMap, vertices, sizeof(vertices));*/
 		std::copy(vertices.begin(), vertices.end(), vertMap);
 		vertBuff->Unmap(0, nullptr);
 	}
@@ -649,7 +614,14 @@ void Object3d::CreateModel()
 	unsigned short* indexMap = nullptr;
 	result = indexBuff->Map(0, nullptr, (void**)&indexMap);
 	if (SUCCEEDED(result)) {
+
+		// 全インデックスに対して
+		//for (int i = 0; i < _countof(indices); i++)
+		//{
+		//	indexMap[i] = indices[i];	// インデックスをコピー
+		//}
 		std::copy(indices.begin(), indices.end(), indexMap);
+
 		indexBuff->Unmap(0, nullptr);
 	}
 
@@ -741,5 +713,6 @@ void Object3d::Draw()
 	// シェーダリソースビューをセット
 	cmdList->SetGraphicsRootDescriptorTable(1, gpuDescHandleSRV);
 	// 描画コマンド
+	/*cmdList->DrawIndexedInstanced(_countof(indices), 1, 0, 0, 0);*/
 	cmdList->DrawIndexedInstanced((UINT)indices.size(), 1, 0, 0, 0);
 }
