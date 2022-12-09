@@ -201,7 +201,7 @@ private:// 静的メンバ関数
 	/// <summary>
 	/// テクスチャ読み込み
 	/// </summary>
-	static void LoadTexture();
+	static void LoadTexture(const std::string& directoryPath, const std::string& filename);
 
 	/// <summary>
 	/// モデル作成
@@ -212,6 +212,11 @@ private:// 静的メンバ関数
 	/// ビュー行列を更新
 	/// </summary>
 	static void UpdateViewMatrix();
+
+	/// <summary>
+	/// マテリアル読み込み
+	/// </summary>
+	static void LoadMaterial(const std::string& directory,const std::string& filename);
 
 public: // メンバ関数
 	bool Initialize();

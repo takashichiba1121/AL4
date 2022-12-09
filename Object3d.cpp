@@ -56,8 +56,8 @@ void Object3d::StaticInitialize(ID3D12Device* device, int window_width, int wind
 	// パイプライン初期化
 	InitializeGraphicsPipeline();
 
-	// テクスチャ読み込み
-	LoadTexture();
+	//// テクスチャ読み込み
+	//LoadTexture();
 
 	// モデル生成
 	CreateModel();
@@ -306,7 +306,7 @@ void Object3d::InitializeGraphicsPipeline()
 	// ルートパラメータ
 	CD3DX12_ROOT_PARAMETER rootparams[3];
 	rootparams[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_ALL);
-	rootparams[1].InitAsDescriptorTable(1, 0, D3D12_SHADER_VISIBILITY_ALL);
+	rootparams[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
 	rootparams[2].InitAsDescriptorTable(1, &descRangeSRV,D3D12_SHADER_VISIBILITY_ALL);
 
 	// スタティックサンプラー
@@ -331,16 +331,25 @@ void Object3d::InitializeGraphicsPipeline()
 
 }
 
-void Object3d::LoadTexture()
+void Object3d::LoadTexture(const std::string& directoryPath, const std::string& filename)
 {
 	HRESULT result = S_FALSE;
 
 	TexMetadata metadata{};
 	ScratchImage scratchImg{};
 
-	// WICテクスチャのロード
-	result = LoadFromWICFile(L"Resources/texture.png", WIC_FLAGS_NONE, &metadata, scratchImg);
-	assert(SUCCEEDED(result));
+	//ファイルパスを結合
+	string filepath = directoryPath + filename;
+
+	//ユニコード文字列に変換する
+	wchar_t wfilepath[128];
+	int iBufferSize = MultiByteToWideChar(CP_ACP,0,filepath.c_str(),-1,wfilepath,_countof(wfilepath));
+
+	//// WICテクスチャのロード
+	//result = LoadFromWICFile(L"Resources/texture.png", WIC_FLAGS_NONE, &metadata, scratchImg);
+	//assert(SUCCEEDED(result));
+
+	result = LoadFromWICFile(wfilepath,WIC_FLAGS_NONE,&metadata,scratchImg);
 
 	ScratchImage mipChain{};
 	// ミップマップ生成
@@ -412,8 +421,8 @@ void Object3d::CreateModel()
 	//.objファイルを開く
 	/*file.open("Resources/triangle_tex/triangle_tex.obj");*/
 	const string modelname = "triangle_mat";
-	const string filename = modelname + "obj";//triangle_mat.obj
-	const string directoryPath = "Resouces/" + modelname + "/";//Resources/triangle_mat/
+	const string filename = modelname + ".obj";//triangle_mat.obj
+	const string directoryPath = "Resources/" + modelname + "/";//Resources/triangle_mat/
 	file.open(directoryPath+filename);//Resources/triangle_mat/triangle_mat.obj
 	//ファイルオープン失敗をチェック
 	if (file.fail()) {
@@ -503,6 +512,8 @@ void Object3d::CreateModel()
 			//マテリアルのファイル名読み込み
 			string filename;
 			line_stream >> filename;
+			//マテリアル読み込み
+			LoadMaterial(directoryPath,filename);
 
 		}
 	}
@@ -689,6 +700,69 @@ void Object3d::UpdateViewMatrix()
 {
 	// ビュー行列の更新
 	matView = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
+}
+
+void Object3d::LoadMaterial(const std::string& directoryPath, const std::string& filename)
+{
+	//ファイルストリーム
+	std::ifstream file;
+	//マテリアルファイルを開く
+	file.open(directoryPath+filename);
+	//ファイルオープン失敗をチェック
+	if (file.fail())
+	{
+		assert(0);
+	}
+
+	//一行ずつ読み込む
+	string line;
+	while ((getline(file,line)))
+	{
+		//一行分の文字列をストリームに変換
+		std::istringstream line_stream(line);
+		//半角スぺース区切りで行の先頭文字列を取得
+		string key;
+		getline(line_stream,key,' ');
+
+		//先頭のタブ文字は無視する
+		if (key[0]=='\t')
+		{
+			key.erase(key.begin());
+		}
+
+		//先頭文字列がnewmtlならマテリアル名
+		if (key == "newmtl") {
+			//マテリアル名読み込み
+			line_stream >> material.name;
+		}
+		//先頭文字列がKaならアンビエント色
+		if (key == "Ka") {
+			line_stream >> material.ambient.x;
+			line_stream >> material.ambient.y;
+			line_stream >> material.ambient.z;
+		}
+		//先頭文字列がKdならディフューズ色
+		if (key == "Kd") {
+			line_stream >> material.diffuse.x;
+			line_stream >> material.diffuse.y;
+			line_stream >> material.diffuse.z;
+		}
+		//先頭文字列がKsならスペキュラー色
+		if (key == "Ks") {
+			line_stream >> material.specular.x;
+			line_stream >> material.specular.y;
+			line_stream >> material.specular.z;
+		}
+		//先頭文字列がmap_Kdならテクスチャファイル名
+		if (key == "map_Kd") {
+			//テクスチャのファイル名読み込み
+			line_stream >> material.textureFilename;
+			//テクスチャ読み込み
+			LoadTexture(directoryPath,material.textureFilename);
+		}
+	}
+	//ファイルを閉じる
+	file.close();
 }
 
 bool Object3d::Initialize()
