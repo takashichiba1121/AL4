@@ -34,6 +34,8 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	spriteBG = Sprite::Create(1, { 0.0f,0.0f });
 	// 3Dオブジェクト生成
 	object3d = Object3d::Create();
+	modelFighter = Model::CreateFromOBJ("triangle_mat");
+	object3d->SetModel(modelFighter);
 	object3d->Update();
 }
 
