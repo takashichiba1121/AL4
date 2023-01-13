@@ -11,6 +11,7 @@ GameScene::~GameScene()
 {
 	delete spriteBG;
 	delete object3d;
+	delete model;
 }
 
 void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
@@ -32,9 +33,17 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 
 	// 背景スプライト生成
 	spriteBG = Sprite::Create(1, { 0.0f,0.0f });
+
+	model = Model::CreateFromOBJ("triangle_mat");
+	model2 = Model::CreateFromOBJ("playerbullet");
 	// 3Dオブジェクト生成
 	object3d = Object3d::Create();
+	object3d->SetModel(model);
 	object3d->Update();
+	// 3Dオブジェクト生成
+	object3d2 = Object3d::Create();
+	object3d2->SetModel(model2);
+	object3d2->Update();
 }
 
 void GameScene::Update()
@@ -94,6 +103,7 @@ void GameScene::Draw()
 
 	// 3Dオブクジェクトの描画
 	object3d->Draw();
+	object3d2->Draw();
 
 	/// <summary>
 	/// ここに3Dオブジェクトの描画処理を追加できる
