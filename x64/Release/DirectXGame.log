@@ -1,0 +1,54 @@
+﻿  compilation object save succeeded; see C:\K021G1120\二年次\AL4\kamata\x64\Release\ObjPS.cso
+  compilation object save succeeded; see C:\K021G1120\二年次\AL4\kamata\x64\Release\ObjVS.cso
+  compilation object save succeeded; see C:\K021G1120\二年次\AL4\kamata\x64\Release\PrimitivePS.cso
+  compilation object save succeeded; see C:\K021G1120\二年次\AL4\kamata\x64\Release\PrimitiveVS.cso
+  compilation object save succeeded; see C:\K021G1120\二年次\AL4\kamata\x64\Release\ShapePS.cso
+  compilation object save succeeded; see C:\K021G1120\二年次\AL4\kamata\x64\Release\ShapeVS.cso
+  compilation object save succeeded; see C:\K021G1120\二年次\AL4\kamata\x64\Release\SpritePS.cso
+  compilation object save succeeded; see C:\K021G1120\二年次\AL4\kamata\x64\Release\SpriteVS.cso
+  affine.cpp
+  DirectXCommon.cpp
+  TextureManager.cpp
+  WinApp.cpp
+  Boss.cpp
+  BossBullet.cpp
+  Collision.cpp
+  Enemy.cpp
+  EnemyBullet.cpp
+  GameOver.cpp
+  main.cpp
+  player.cpp
+  playerBullet.cpp
+  RailCamera.cpp
+C:\K021G1120\二年次\AL4\kamata\GameOver.cpp(27,71): warning C4244: '引数': 'LONG' から 'float' への変換です。データが失われる可能性があります。
+C:\K021G1120\二年次\AL4\kamata\GameOver.cpp(27,54): warning C4244: '引数': 'LONG' から 'float' への変換です。データが失われる可能性があります。
+  result.cpp
+C:\K021G1120\二年次\AL4\kamata\player\player.cpp(119,71): warning C4244: '引数': 'LONG' から 'float' への変換です。データが失われる可能性があります。
+C:\K021G1120\二年次\AL4\kamata\player\player.cpp(119,54): warning C4244: '引数': 'LONG' から 'float' への変換です。データが失われる可能性があります。
+C:\K021G1120\二年次\AL4\kamata\player\player.cpp(138,59): warning C4244: '引数': 'LONG' から 'float' への変換です。データが失われる可能性があります。
+C:\K021G1120\二年次\AL4\kamata\player\player.cpp(138,42): warning C4244: '引数': 'LONG' から 'float' への変換です。データが失われる可能性があります。
+C:\K021G1120\二年次\AL4\kamata\player\player.cpp(139,58): warning C4244: '引数': 'LONG' から 'float' への変換です。データが失われる可能性があります。
+C:\K021G1120\二年次\AL4\kamata\player\player.cpp(139,41): warning C4244: '引数': 'LONG' から 'float' への変換です。データが失われる可能性があります。
+  GameScene.cpp
+  Skydome.cpp
+  Title.cpp
+C:\K021G1120\二年次\AL4\kamata\Boss.cpp(23,36): warning C4305: '=': 'double' から 'float' へ切り詰めます。
+C:\K021G1120\二年次\AL4\kamata\result.cpp(27,71): warning C4244: '引数': 'LONG' から 'float' への変換です。データが失われる可能性があります。
+C:\K021G1120\二年次\AL4\kamata\result.cpp(27,54): warning C4244: '引数': 'LONG' から 'float' への変換です。データが失われる可能性があります。
+C:\K021G1120\二年次\AL4\kamata\Title.cpp(27,71): warning C4244: '引数': 'LONG' から 'float' への変換です。データが失われる可能性があります。
+C:\K021G1120\二年次\AL4\kamata\Title.cpp(27,54): warning C4244: '引数': 'LONG' から 'float' への変換です。データが失われる可能性があります。
+C:\K021G1120\二年次\AL4\kamata\scene\GameScene.cpp(350,11): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
+C:\K021G1120\二年次\AL4\kamata\scene\GameScene.cpp(351,11): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
+C:\K021G1120\二年次\AL4\kamata\scene\GameScene.cpp(375,12): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
+C:\K021G1120\二年次\AL4\kamata\scene\GameScene.cpp(376,12): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
+C:\K021G1120\二年次\AL4\kamata\scene\GameScene.cpp(402,11): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
+C:\K021G1120\二年次\AL4\kamata\scene\GameScene.cpp(403,11): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
+C:\K021G1120\二年次\AL4\kamata\scene\GameScene.cpp(427,11): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
+C:\K021G1120\二年次\AL4\kamata\scene\GameScene.cpp(428,11): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
+C:\K021G1120\二年次\AL4\kamata\scene\GameScene.cpp(520,19): warning C4244: '=': 'int32_t' から 'float' への変換です。データが失われる可能性があります。
+  コード生成しています。
+  1457 of 1473 functions (98.9%) were compiled, the rest were copied from previous compilation.
+    5 functions were new in current compilation
+    2 functions had inline decision re-evaluated but remain unchanged
+  コード生成が終了しました。
+  DirectXGame.vcxproj -> C:\K021G1120\二年次\AL4\kamata\x64\Release\DirectXGame.exe

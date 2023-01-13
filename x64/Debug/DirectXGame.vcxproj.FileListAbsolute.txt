@@ -1,0 +1,3 @@
+C:\KamataEngine\DirectXGame\x64\Debug\DirectXGame.exe
+C:\Users\hurst\Desktop\DirectXGame\x64\Debug\DirectXGame.exe
+C:\K021G1120\二年次\AL3\DirectXGame\x64\Debug\DirectXGame.exe
