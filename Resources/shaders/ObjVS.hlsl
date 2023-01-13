@@ -2,9 +2,17 @@
 
 VSOutput main(float4 pos : POSITION, float3 normal : NORMAL, float2 uv : TEXCOORD)
 {
-	VSOutput output; // ピクセルシェーダーに渡す値
-	output.svpos = mul(mat, pos);
-	output.normal = normal;
+	// 豕慕ｷ壹↓繝ｯ繝ｼ繝ｫ繝芽｡悟�励↓繧医ｋ繧ｹ繧ｱ繝ｼ繝ｪ繝ｳ繧ｰ繝ｻ蝗櫁ｻ｢繧帝←逕ｨ
+	// 窶ｻ繧ｹ繧ｱ繝ｼ繝ｪ繝ｳ繧ｰ縺御ｸ讒倥↑蝣ｴ蜷医�ｮ縺ｿ豁｣縺励＞
+	float4 worldNormal = normalize(mul(world, float4(normal, 0)));
+	float4 worldPos = mul(world, pos);
+
+	VSOutput output; // 繝斐け繧ｻ繝ｫ繧ｷ繧ｧ繝ｼ繝繝ｼ縺ｫ貂｡縺吝､
+	output.svpos = mul(mul(mul(projection, view), world), pos);
+
+	output.worldpos = worldPos;
+	output.normal = worldNormal.xyz;
 	output.uv = uv;
+	
 	return output;
 }
