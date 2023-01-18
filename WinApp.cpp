@@ -1,234 +1,77 @@
-ï»¿#include "WinApp.h"
+#include "WinApp.h"
+#pragma comment(lib,"winmm.lib")
 
-#include <imgui_impl_win32.h>
-#include <string>
-
-// Forward declare message handler from imgui_impl_win32.cpp
-extern IMGUI_IMPL_API LRESULT
-  ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-namespace {
-// SJIS -> WideChar
-std::wstring ConvertString(const std::string& str) {
-	if (str.empty()) {
-		return std::wstring();
-	}
-
-	auto size_needed =
-	  MultiByteToWideChar(CP_ACP, 0, str.c_str(), static_cast<int>(str.size()), NULL, 0);
-	if (size_needed == 0) {
-		return std::wstring();
-	}
-	std::wstring result(size_needed, 0);
-	MultiByteToWideChar(
-	  CP_ACP, 0, str.c_str(), static_cast<int>(str.size()), &result[0], size_needed);
-	return result;
-}
-
-// ref: https://devblogs.microsoft.com/oldnewthing/20131017-00/?p=2903
-BOOL UnadjustWindowRectEx(LPRECT prc, DWORD dwStyle, BOOL fMenu, DWORD dwExStyle) {
-	RECT rc;
-	SetRectEmpty(&rc);
-	BOOL fRc = AdjustWindowRectEx(&rc, dwStyle, fMenu, dwExStyle);
-	if (fRc) {
-		prc->left -= rc.left;
-		prc->top -= rc.top;
-		prc->right -= rc.right;
-		prc->bottom -= rc.bottom;
-	}
-	return fRc;
-}
-} // namespace
-
-const wchar_t WinApp::kWindowClassName[] = L"DirectXGame";
-
-WinApp* WinApp::GetInstance() {
-	static WinApp instance;
-	return &instance;
-}
-
-// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£
-LRESULT WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
-	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
-		return true;
-
-	WinApp* app = reinterpret_cast<WinApp*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
-
-	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã§åˆ†å²
-	switch (msg) {
-	case WM_DESTROY:        // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãŒç ´æ£„ã•ã‚ŒãŸ
-		PostQuitMessage(0); // OSã«å¯¾ã—ã¦ã€ã‚¢ãƒ—ãƒªã®çµ‚äº†ã‚’ä¼ãˆã‚‹
-		return 0;
-
-	case WM_SIZING: {
-		// ã‚¢ã‚¹ãƒšã‚¯ãƒˆæ¯”ã‚’å¤‰ãˆã‚‹ã‚µã‚¤ã‚ºå¤‰æ›´ã‚’è¨±å¯ã—ãªã„
-		if (app && app->GetSizeChangeMode() == WinApp::SizeChangeMode::kFixedAspect) {
-			float aspectRatio = app->aspectRatio_;
-			float aspectRatioRecp = 1.0f / aspectRatio;
-			RECT* rect = reinterpret_cast<RECT*>(lparam);
-			UnadjustWindowRectEx(
-			  rect, GetWindowLong(hwnd, GWL_STYLE), GetMenu(hwnd) != 0,
-			  GetWindowLong(hwnd, GWL_EXSTYLE));
-
-			switch (wparam) {
-			case WMSZ_LEFT:
-			case WMSZ_BOTTOMLEFT:
-			case WMSZ_RIGHT:
-			case WMSZ_BOTTOMRIGHT:
-				rect->bottom = rect->top + LONG((rect->right - rect->left) * aspectRatioRecp);
-				break;
-			case WMSZ_TOP:
-			case WMSZ_TOPRIGHT:
-			case WMSZ_BOTTOM:
-				rect->right = rect->left + LONG((rect->bottom - rect->top) * aspectRatio);
-				break;
-			case WMSZ_TOPLEFT:
-				rect->top = rect->bottom - LONG((rect->right - rect->left) * aspectRatioRecp);
-				rect->left = rect->right - LONG((rect->bottom - rect->top) * aspectRatio);
-				break;
-			}
-
-			AdjustWindowRectEx(
-			  rect, GetWindowLong(hwnd, GWL_STYLE), GetMenu(hwnd) != 0,
-			  GetWindowLong(hwnd, GWL_EXSTYLE));
-		}
-		break;
-	}
-	}
-	return DefWindowProc(hwnd, msg, wparam, lparam); // æ¨™æº–ã®å‡¦ç†ã‚’è¡Œã†
-}
-
-void WinApp::CreateGameWindow(
-  const char* title, UINT windowStyle, int32_t clientWidth, int32_t clientHeight) {
-
-	// COMåˆæœŸåŒ–
-	CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-
-	windowStyle_ = windowStyle;
-	aspectRatio_ = float(clientWidth) / float(clientHeight);
-	// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚¯ãƒ©ã‚¹ã®è¨­å®š
-	wndClass_.cbSize = sizeof(WNDCLASSEX);
-	wndClass_.lpfnWndProc = (WNDPROC)WindowProc;     // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£
-	wndClass_.lpszClassName = kWindowClassName;      // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚¯ãƒ©ã‚¹å
-	wndClass_.hInstance = GetModuleHandle(nullptr);  // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
-	wndClass_.hCursor = LoadCursor(NULL, IDC_ARROW); // ã‚«ãƒ¼ã‚½ãƒ«æŒ‡å®š
-
-	RegisterClassEx(&wndClass_); // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚¯ãƒ©ã‚¹ã‚’OSã«ç™»éŒ²
-
-	// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚º{ Xåº§æ¨™ Yåº§æ¨™ æ¨ªå¹… ç¸¦å¹… }
-	RECT wrc = {0, 0, clientWidth, clientHeight};
-	AdjustWindowRect(&wrc, windowStyle_, false); // è‡ªå‹•ã§ã‚µã‚¤ã‚ºè£œæ­£
-
-	// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚¿ã‚¤ãƒˆãƒ«ã‚’wchar_tã«å¤‰æ›
-	std::wstring titleWString = ConvertString(title);
-
-	// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ç”Ÿæˆ
-	hwnd_ = CreateWindow(
-	  wndClass_.lpszClassName, // ã‚¯ãƒ©ã‚¹å
-	  titleWString.c_str(),    // ã‚¿ã‚¤ãƒˆãƒ«ãƒãƒ¼ã®æ–‡å­—
-	  windowStyle_,            // ã‚¿ã‚¤ãƒˆãƒ«ãƒãƒ¼ã¨å¢ƒç•Œç·šãŒã‚ã‚‹ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
-	  CW_USEDEFAULT,           // è¡¨ç¤ºXåº§æ¨™ï¼ˆOSã«ä»»ã›ã‚‹ï¼‰
-	  CW_USEDEFAULT,           // è¡¨ç¤ºYåº§æ¨™ï¼ˆOSã«ä»»ã›ã‚‹ï¼‰
-	  wrc.right - wrc.left,    // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦æ¨ªå¹…
-	  wrc.bottom - wrc.top,    // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ç¸¦å¹…
-	  nullptr,                 // è¦ªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
-	  nullptr,                 // ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ³ãƒ‰ãƒ«
-	  wndClass_.hInstance,     // å‘¼ã³å‡ºã—ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ãƒãƒ³ãƒ‰ãƒ«
-	  nullptr);                // ã‚ªãƒ—ã‚·ãƒ§ãƒ³
-	SetWindowLongPtr(hwnd_, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
-
-	// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦è¡¨ç¤º
-	ShowWindow(hwnd_, SW_NORMAL);
-}
-
-void WinApp::TerminateGameWindow() {
-	// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚¯ãƒ©ã‚¹ã‚’ç™»éŒ²è§£é™¤
-	UnregisterClass(wndClass_.lpszClassName, wndClass_.hInstance);
-
-	// COM çµ‚äº†
-	CoUninitialize();
-}
-
-bool WinApp::ProcessMessage() {
-	MSG msg{}; // ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸
-
-	if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) // ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãŒã‚ã‚‹ï¼Ÿ
+//ƒEƒBƒ“ƒhƒEƒvƒ[ƒWƒƒ[
+LRESULT WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wapram, LPARAM lparam) {
+	//ƒƒbƒZ[ƒW‚É‰‚¶‚ÄƒQ[ƒ€ŒÅ—L‚Ìˆ—‚ğs‚¤
+	switch (msg)
 	{
-		TranslateMessage(&msg); // ã‚­ãƒ¼å…¥åŠ›ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®å‡¦ç†
-		DispatchMessage(&msg);  // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’é€ã‚‹
+		//ƒEƒCƒ“ƒhƒE‚ª”jŠü‚³‚ê‚½
+	case WM_DESTROY:
+		//OS‚É‘Î‚µ‚ÄAƒAƒvƒŠ‚ÌI—¹‚ğ“`‚¦‚é
+		PostQuitMessage(0);
+		return 0;
+	}
+	return DefWindowProc(hwnd, msg, wapram, lparam);
+}
+
+void WinApp::Initialize()
+{
+
+	//ƒEƒCƒ“ƒhƒEƒNƒ‰ƒX‚Ìİ’è
+	w.cbSize = sizeof(WNDCLASSEX);
+	w.lpfnWndProc = (WNDPROC)WindowProc;//ƒEƒCƒ“ƒhƒEƒvƒ\ƒWƒƒ[‚Ìİ’è
+	w.lpszClassName = L"DirectXGame";//ƒEƒCƒ“ƒhƒEƒNƒ‰ƒX–¼
+	w.hInstance = GetModuleHandle(nullptr);//ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+	w.hCursor = LoadCursor(NULL, IDC_ARROW);//ƒJ[ƒ\ƒ‹w’è
+
+	//ƒEƒCƒ“ƒhƒEƒNƒ‰ƒX‚ğOS‚É“o˜^‚·‚é
+	RegisterClassEx(&w);
+	//ƒEƒCƒ“ƒhƒEƒTƒCƒYoXÀ•W@YÀ•W@‰¡•@c•p
+	RECT wrc = { 0,0,window_width,window_heigit };
+	//©“®ƒTƒCƒY‚ğ•â³‚·‚é
+	AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
+
+	//ƒEƒCƒ“ƒhƒEƒIƒuƒWƒFƒNƒg‚Ì¶¬
+	hwnd = CreateWindow(w.lpszClassName,//ƒNƒ‰ƒX–¼
+		L"DirectXGame",//ƒ^ƒCƒgƒ‹ƒo[‚Ì•¶š
+		WS_OVERLAPPEDWINDOW,//•W€“I‚ÈƒEƒCƒ“ƒhƒEƒXƒ^ƒCƒ‹
+		CW_USEDEFAULT,//•\¦XÀ•WiOS‚É”C‚¹‚éj
+		CW_USEDEFAULT,//•\¦YÀ•WiOS‚É”C‚¹‚éj
+		wrc.right - wrc.left,//ƒEƒCƒ“ƒhƒE‰¡•
+		wrc.bottom - wrc.top,//ƒEƒCƒ“ƒhƒEc•
+		nullptr,//eƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+		nullptr,//ƒƒjƒ…[ƒnƒ“ƒhƒ‹
+		w.hInstance,//ŒÄ‚Ño‚µƒAƒvƒŠƒP[ƒVƒ‡ƒ“ƒnƒ“ƒhƒ‹
+		nullptr);//ƒIƒvƒVƒ‡ƒ“
+
+	//ƒEƒCƒ“ƒhƒE‚ğ•\¦ó‘Ô‚É‚·‚é
+	ShowWindow(hwnd, SW_SHOW);
+
+	//ƒVƒXƒeƒ€ƒ^ƒCƒ}[‚Ì•ª‰ğ”\‚ğã‚°‚é
+	timeBeginPeriod(1);
+}
+
+void WinApp::Finalize()
+{
+	//ƒEƒCƒ“ƒhƒEƒNƒ‰ƒX‚ğ“o˜^‰ğœ
+	UnregisterClass(w.lpszClassName, w.hInstance);
+}
+
+bool WinApp::ProcessMessage()
+{
+	MSG msg{};
+
+	if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
 	}
 
-	if (msg.message == WM_QUIT) // çµ‚äº†ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãŒæ¥ãŸã‚‰ãƒ«ãƒ¼ãƒ—ã‚’æŠœã‘ã‚‹
+	if (msg.message == WM_QUIT)
 	{
 		return true;
 	}
 
 	return false;
 }
-
-void WinApp::SetFullscreen(bool fullscreen) {
-
-	if (isFullscreen_ != fullscreen) {
-		if (fullscreen) {
-			// å…ƒã®çŠ¶æ…‹ã‚’è¦šãˆã¦ãŠã
-			GetWindowRect(hwnd_, &windowRect_);
-
-			// ä»®æƒ³ãƒ•ãƒ«ã‚¹ã‚¯ãƒªãƒ¼ãƒ³åŒ–
-			SetWindowLong(
-			  hwnd_, GWL_STYLE,
-			  windowStyle_ &
-			    ~(WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SYSMENU | WS_THICKFRAME));
-
-			RECT fullscreenRect{0};
-			HMONITOR monitor = MonitorFromWindow(hwnd_, MONITOR_DEFAULTTONEAREST);
-			MONITORINFO info;
-			info.cbSize = sizeof(info);
-			GetMonitorInfo(monitor, &info);
-			fullscreenRect.right = info.rcMonitor.right - info.rcMonitor.left;
-			fullscreenRect.bottom = info.rcMonitor.bottom - info.rcMonitor.top;
-
-			SetWindowPos(
-			  hwnd_, HWND_TOPMOST, fullscreenRect.left, fullscreenRect.top, fullscreenRect.right,
-			  fullscreenRect.bottom, SWP_FRAMECHANGED | SWP_NOACTIVATE);
-			ShowWindow(hwnd_, SW_MAXIMIZE);
-
-		} else {
-			// é€šå¸¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã«æˆ»ã™
-			SetWindowLong(hwnd_, GWL_STYLE, windowStyle_);
-
-			SetWindowPos(
-			  hwnd_, HWND_NOTOPMOST, windowRect_.left, windowRect_.top,
-			  windowRect_.right - windowRect_.left, windowRect_.bottom - windowRect_.top,
-			  SWP_FRAMECHANGED | SWP_NOACTIVATE);
-
-			ShowWindow(hwnd_, SW_NORMAL);
-		}
-	}
-
-	isFullscreen_ = fullscreen;
-}
-
-bool WinApp::IsFullscreen() const { return isFullscreen_; }
-
-void WinApp::SetSizeChangeMode(SizeChangeMode sizeChangeMode) {
-
-	sizeChangeMode_ = sizeChangeMode;
-	if (sizeChangeMode_ == SizeChangeMode::kNone) {
-		windowStyle_ &= ~WS_THICKFRAME;
-	} else {
-		// ã‚¢ã‚¹ãƒšã‚¯ãƒˆæ¯”å¤‰æ›´ä¸å¯ãªã®ã§ç¾åœ¨ã®ã‚¢ã‚¹ãƒšã‚¯ãƒˆæ¯”ã‚’æŒã£ã¦ãŠã
-		if (sizeChangeMode_ == SizeChangeMode::kFixedAspect) {
-			RECT clientRect{};
-			GetClientRect(hwnd_, &clientRect);
-			aspectRatio_ =
-			  float(clientRect.right - clientRect.left) / float(clientRect.bottom - clientRect.top);
-		}
-		windowStyle_ |= WS_THICKFRAME;
-	}
-	SetWindowLong(hwnd_, GWL_STYLE, windowStyle_);
-	SetWindowPos(
-	  hwnd_, NULL, 0, 0, 0, 0, (SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED));
-	ShowWindow(hwnd_, SW_NORMAL);
-}
-
-WinApp::SizeChangeMode WinApp::GetSizeChangeMode() const { return sizeChangeMode_; }

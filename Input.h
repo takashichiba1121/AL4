@@ -1,49 +1,104 @@
-ï»¿#pragma once
+#pragma once
+#define DIRECTINPUT_VERSION 0x0800 //DirectInput‚Ìƒo[ƒWƒ‡ƒ“w’è
+#include<dinput.h>
+#include<windows.h>
+#include<wrl.h>
+#include"WinApp.h"
+#include<Xinput.h>
 
-#include <Windows.h>
-#include <wrl.h>
+#pragma comment (lib, "xinput.lib")
 
-#define DIRECTINPUT_VERSION     0x0800          // DirectInputã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³æŒ‡å®š
-#include <dinput.h>
-
-/// <summary>
-/// å…¥åŠ›
-/// </summary>
+//“ü—Í
 class Input
 {
-private: // ã‚¨ã‚¤ãƒªã‚¢ã‚¹
-	// Microsoft::WRL::ã‚’çœç•¥
-	template <class T> using ComPtr = Microsoft::WRL::ComPtr<T>;
+public:
 
-public: // ãƒ¡ãƒ³ãƒé–¢æ•°
-	/// <summary>
-	/// åˆæœŸåŒ–
-	/// </summary>
-	void Initialize(HINSTANCE hInstance, HWND hwnd);
+	template <class T> using ComPtr= Microsoft::WRL::ComPtr<T>;
 
-	/// <summary>
-	/// æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‡¦ç†
-	/// </summary>
-	void Update();
+public://ƒƒ“ƒoŠÖ”
+
+	//‰Šú‰»
+	static void Initialize(WinApp* winApp);
+	//XV
+	static void Update();
 
 	/// <summary>
-	/// ã‚­ãƒ¼ã®æŠ¼ä¸‹ã‚’ãƒã‚§ãƒƒã‚¯
+	/// ƒL[‚Ì‰Ÿ‰º‚ğƒ`ƒFƒbƒN
 	/// </summary>
-	/// <param name="keyNumber">ã‚­ãƒ¼ç•ªå·( DIK_0 ç­‰)</param>
-	/// <returns>æŠ¼ã•ã‚Œã¦ã„ã‚‹ã‹</returns>
-	bool PushKey(BYTE keyNumber);
+	///<param name="keynumber">ƒL[”Ô†(DIK_0“™)</param>
+	/// <returns>‰Ÿ‚³‚ê‚Ä‚¢‚é‚©</returns>
+	static bool PushKey(BYTE keyNumber);
+	/// <summary>
+	/// ƒL[‚ÌƒgƒŠƒK[‚ğƒ`ƒFƒbƒN
+	/// </summary>
+	///<param name="keynumber">ƒL[”Ô†(DIK_0“™)</param>
+	/// <returns>ƒgƒŠƒK[‚©</returns>
+	static bool TriggerKey(BYTE keyNumber);
+private://ƒƒCƒ“•Ï”
+	//ƒL[ƒ{[ƒhƒfƒoƒCƒX
+	static ComPtr<IDirectInputDevice8> keyboard;
+
+	static ComPtr<IDirectInput8> directInput;
+
+	static BYTE key[256];
+
+	static BYTE keyPre[256];
+
+	//WindowAPI
+	static WinApp* winApp_;
+
+public://ƒƒ“ƒoŠÖ”(ƒQ[ƒ€ƒpƒbƒh)
+	/// <summary>
+	/// ƒRƒ“ƒgƒ[ƒ‰[‚Ìó‹µ‚Ìæ“¾i–ˆƒtƒŒ[ƒ€‚·‚éj
+	/// </summary>
+	///<param name="dwUserIndex">‚Â‚È‚ª‚ê‚Ä‚éƒRƒ“ƒgƒ[ƒ‰[‚ª•¡”‚Ìê‡‚Ìw’èiˆê‚Â‚È‚ç0‚ÅOKj</param>
+	/// <returns>¬Œ÷‚©H</returns>
+	DWORD Updatekeypad(DWORD dwUserIndex);
 
 	/// <summary>
-	/// ã‚­ãƒ¼ã®ãƒˆãƒªã‚¬ãƒ¼ã‚’ãƒã‚§ãƒƒã‚¯
+	/// ¶ƒAƒiƒƒOƒXƒeƒBƒbƒN‚ÌX•ûŒü‚Ì“ü—Íó‹µ
 	/// </summary>
-	/// <param name="keyNumber">ã‚­ãƒ¼ç•ªå·( DIK_0 ç­‰)</param>
-	/// <returns>ãƒˆãƒªã‚¬ãƒ¼ã‹</returns>
-	bool TriggerKey(BYTE keyNumber);
+	/// <returns>¶ƒAƒiƒƒOƒXƒeƒBƒbƒN‚ÌX•ûŒü‚Ì“ü—Íó‹µ‚ğ•Ô‚·(-1`+1)</returns>
+	float PadAnalogStickLX();
 
-private: // ãƒ¡ãƒ³ãƒå¤‰æ•°
-	ComPtr<IDirectInput8> dinput;
-	ComPtr<IDirectInputDevice8> devkeyboard;
-	BYTE key[256] = {};
-	BYTE keyPre[256] = {};
+	/// <summary>
+	/// ¶ƒAƒiƒƒOƒXƒeƒBƒbƒN‚ÌY•ûŒü‚Ì“ü—Íó‹µ
+	/// </summary>
+	/// <returns>¶ƒAƒiƒƒOƒXƒeƒBƒbƒN‚ÌY•ûŒü‚Ì“ü—Íó‹µ‚ğ•Ô‚·(-1`+1)</returns>
+	float PadAnalogStickLY();
+
+	/// <summary>
+	/// ‰EƒAƒiƒƒOƒXƒeƒBƒbƒN‚ÌX•ûŒü‚Ì“ü—Íó‹µ
+	/// </summary>
+	/// <returns>‰EƒAƒiƒƒOƒXƒeƒBƒbƒN‚ÌX•ûŒü‚Ì“ü—Íó‹µ‚ğ•Ô‚·(-1`+1)</returns>
+	float PadAnalogStickRX();
+
+	/// <summary>
+	/// ‰EƒAƒiƒƒOƒXƒeƒBƒbƒN‚ÌY•ûŒü‚Ì“ü—Íó‹µ
+	/// </summary>
+	/// <returns>‰EƒAƒiƒƒOƒXƒeƒBƒbƒN‚ÌY•ûŒü‚Ì“ü—Íó‹µ‚ğ•Ô‚·(-1`+1)</returns>
+	float PadAnalogStickRY();
+
+	/// <summary>
+	/// ¶ƒgƒŠƒK[(LZ‚Æ‚©ŒÄ‚Î‚ê‚é‚â‚Â)‚Ì“ü—Íó‹µ
+	/// </summary>
+	/// <returns>¶ƒgƒŠƒK[‚Ì“ü—Íó‹µ‚ğ•Ô‚·(0`+1)</returns>
+	float PadLTrigger();
+
+	/// <summary>
+	/// ‰EƒgƒŠƒK[(RZ‚Æ‚©ŒÄ‚Î‚ê‚é‚â‚Â)‚Ì“ü—Íó‹µ
+	/// </summary>
+	/// <returns>¶ƒgƒŠƒK[‚Ì“ü—Íó‹µ‚ğ•Ô‚·(0`+1)</returns>
+	float PadRTrigger();
+
+	/// <summary>
+	/// ƒRƒ“ƒgƒ[ƒ‰[‚Ìƒ{ƒ^ƒ“‚Ì“ü—Íó‹µ
+	/// </summary>
+	/// ///<param name="button">ƒ{ƒ^ƒ“‚Ìí—Ş(XINPUT_GAMEPAD_‚Ån‚Ü‚é’è”‚Åw’è)</param>
+	/// <returns>‰Ÿ‚³‚ê‚Ä‚é‚©H</returns>
+	bool PadKey(int button);
+
+private://ƒƒ“ƒo•Ï”(ƒQ[ƒ€ƒpƒbƒh)
+
+	XINPUT_STATE gamePad;
 };
-

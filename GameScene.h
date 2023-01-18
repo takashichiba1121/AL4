@@ -1,65 +1,85 @@
-ï»¿#pragma once
-
-#include "DirectXCommon.h"
-#include <DirectXMath.h>
-#include "Input.h"
-#include "Sprite.h"
-#include "Object3d.h"
-#include "DebugText.h"
-
-/// <summary>
-/// ã‚²ãƒ¼ãƒ ã‚·ãƒ¼ãƒ³
-/// </summary>
+#pragma once
+#include"Model.h"
+#include"object3d.h"
+#include"SpriteCommon.h"
+#include"Sprite.h"
+#include"input.h"
+#include"Texture.h"
 class GameScene
 {
-private: // ã‚¨ã‚¤ãƒªã‚¢ã‚¹
-	// Microsoft::WRL::ã‚’çœç•¥
-	template <class T> using ComPtr = Microsoft::WRL::ComPtr<T>;
-	// DirectX::ã‚’çœç•¥
-	using XMFLOAT2 = DirectX::XMFLOAT2;
-	using XMFLOAT3 = DirectX::XMFLOAT3;
-	using XMFLOAT4 = DirectX::XMFLOAT4;
-	using XMMATRIX = DirectX::XMMATRIX;
-
-private: // é™çš„ãƒ¡ãƒ³ãƒå¤‰æ•°
-	static const int debugTextTexNumber = 0;
-
-public: // ãƒ¡ãƒ³ãƒé–¢æ•°
-
+public:
+public: // ƒƒ“ƒoŠÖ”
 	/// <summary>
-	/// ã‚³ãƒ³ã‚¹ãƒˆã‚¯ãƒ©ã‚¿
+	/// ƒRƒ“ƒXƒgƒNƒ‰ƒ^
 	/// </summary>
 	GameScene();
 
 	/// <summary>
-	/// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+	/// ƒfƒXƒgƒ‰ƒNƒ^
 	/// </summary>
 	~GameScene();
 
 	/// <summary>
-	/// åˆæœŸåŒ–
+	/// ‰Šú‰»
 	/// </summary>
-	void Initialize(DirectXCommon* dxCommon, Input* input);
+	void Initialize(GameScene* gameScene);
 
 	/// <summary>
-	/// æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‡¦ç†
+	/// –ˆƒtƒŒ[ƒ€ˆ—
 	/// </summary>
 	void Update();
 
 	/// <summary>
-	/// æç”»
+	/// –ˆƒtƒŒ[ƒ€ˆ—
 	/// </summary>
-	void Draw();
-
-private: // ãƒ¡ãƒ³ãƒå¤‰æ•°
-	DirectXCommon* dxCommon = nullptr;
-	Input* input = nullptr;
-	DebugText debugText;	
+	void CameraUpdate();
 
 	/// <summary>
-	/// ã‚²ãƒ¼ãƒ ã‚·ãƒ¼ãƒ³ç”¨
+	/// –ˆƒtƒŒ[ƒ€ˆ—
 	/// </summary>
-	Sprite* spriteBG = nullptr;
-	Object3d* object3d = nullptr;
+	void BulletUpdate();
+
+	void CheckAllCollisions();
+
+	/// <summary>
+	/// •`‰æ
+	/// </summary>
+	void ObjectDraw();
+
+	/// <summary>
+	/// •`‰æ
+	/// </summary>
+	void SpriteDraw();
+
+private:
+	Model* EnemyModel;
+
+	Object3d* Enemy[5];
+
+	Sprite* TitreUI = nullptr;
+
+	Sprite* Space = nullptr;
+
+	Sprite* sprite2DReticle_=nullptr;
+
+	Sprite* Clear = nullptr;
+
+	Sprite* Sousa = nullptr;
+
+	enum class Phase {
+		title, //ƒ^ƒCƒgƒ‹‰æ–Ê
+		enemy, //G‹›íƒtƒF[ƒY
+		result,//ƒŠƒUƒ‹ƒgƒtƒF[ƒY
+	};
+
+	Phase phase_=Phase::title;
+
+	Model* playerBullet;
+
+	Object3d* bullet;
+
+	bool isBullet=false;
+
+	bool EnemyDeath[5];
 };
 

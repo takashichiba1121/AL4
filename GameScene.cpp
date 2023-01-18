@@ -1,7 +1,4 @@
-﻿#include "GameScene.h"
-#include <cassert>
-
-using namespace DirectX;
+#include "GameScene.h"
 
 GameScene::GameScene()
 {
@@ -9,112 +6,309 @@ GameScene::GameScene()
 
 GameScene::~GameScene()
 {
-	delete spriteBG;
-	delete object3d;
+	for (int i = 0; i < 5; i++)
+	{
+		delete Enemy[i];
+	}
+	delete EnemyModel;
+	delete TitreUI;
+	delete Space;
+	delete sprite2DReticle_;
+	delete bullet;
 }
 
-void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
+void GameScene::Initialize(GameScene* gameScene)
 {
-	// nullptrチェック
-	assert(dxCommon);
-	assert(input);
+	uint32_t tex = Texture::LoadTexture(L"Resources/TitleUI.png");
 
-	this->dxCommon = dxCommon;
-	this->input = input;
+	uint32_t tex2 = Texture::LoadTexture(L"Resources/PushSpace.png");
 
-	// デバッグテキスト用テクスチャ読み込み
-	Sprite::LoadTexture(debugTextTexNumber, L"Resources/debugfont.png");
-	// デバッグテキスト初期化
-	debugText.Initialize(debugTextTexNumber);
+	uint32_t tex3 = Texture::LoadTexture(L"Resources/2D.png");
 
-	// テクスチャ読み込み
-	Sprite::LoadTexture(1, L"Resources/background.png");
+	uint32_t tex4 = Texture::LoadTexture(L"Resources/CLEAR.png");
 
-	// 背景スプライト生成
-	spriteBG = Sprite::Create(1, { 0.0f,0.0f });
-	// 3Dオブジェクト生成
-	object3d = Object3d::Create();
-	object3d->Update();
+	uint32_t tex5 = Texture::LoadTexture(L"Resources/sousa1.png");
+
+	TitreUI = new Sprite;
+
+	TitreUI->Initialize(tex);
+
+	TitreUI->SetPosition({ 640,200 });
+
+	TitreUI->SetAnchorPoint({ 0.5f,0.5f });
+
+	Space = new Sprite;
+
+	Space->Initialize(tex2);
+
+	Space->SetPosition({ 640,600 });
+
+	Space->SetScale({ 250,100 });
+
+	Space->SetAnchorPoint({ 0.5f,0.5f });
+
+	sprite2DReticle_ = new Sprite;
+
+	sprite2DReticle_->Initialize(tex3);
+
+	sprite2DReticle_->SetPosition({ 640,370 });
+
+	sprite2DReticle_->SetAnchorPoint({ 0.5f,0.5f });
+
+	Clear = new Sprite;
+
+	Clear->Initialize(tex4);
+
+	Clear->SetPosition({ 640,200 });
+
+	Clear->SetAnchorPoint({ 0.5f,0.5f });
+
+	Sousa = new Sprite;
+
+	Sousa->Initialize(tex5);
+
+	Sousa->SetPosition({ 10,596 });
+
+	Sousa->SetAnchorPoint({ 0.0f,0.0f });
+
+	EnemyModel = Model::LoadFormOBJ("Enemy");
+
+	for (int i = 0; i < 5; i++)
+	{
+
+		Enemy[i] = new Object3d;
+
+		Enemy[i]->SetModel(EnemyModel);
+
+		Enemy[i]->Initialize();
+
+		EnemyDeath[i] = false;
+
+		Enemy[i]->SetScale({ 5,5,5 });
+	}
+
+	playerBullet = Model::LoadFormOBJ("playerbullet");
+
+	bullet = new Object3d;
+
+	bullet->SetModel(playerBullet);
+
+	bullet->Initialize();
+
+
+	Enemy[0]->SetPosition({ 0.0f,0.0f,50.0f });
+	Enemy[1]->SetPosition({ 30.0f,0.0f,50.0f });
+	Enemy[2]->SetPosition({ -30.0f,00.0f,50.0f });
+	Enemy[3]->SetPosition({ 0.0f,-30.0f,50.0f });
+	Enemy[4]->SetPosition({ 0.0f,30.0f,50.0f });
 }
 
 void GameScene::Update()
 {
-	// オブジェクト移動
-	if (input->PushKey(DIK_UP) || input->PushKey(DIK_DOWN) || input->PushKey(DIK_RIGHT) || input->PushKey(DIK_LEFT))
+	switch (phase_)
 	{
-		// 現在の座標を取得
-		XMFLOAT3 position = object3d->GetPosition();
+	case Phase::title:
+		TitreUI->Update();
 
-		// 移動後の座標を計算
-		if (input->PushKey(DIK_UP)) { position.y += 1.0f; }
-		else if (input->PushKey(DIK_DOWN)) { position.y -= 1.0f; }
-		if (input->PushKey(DIK_RIGHT)) { position.x += 1.0f; }
-		else if (input->PushKey(DIK_LEFT)) { position.x -= 1.0f; }
+		Space->Update();
 
-		// 座標の変更を反映
-		object3d->SetPosition(position);
+		if (Input::TriggerKey(DIK_SPACE))
+		{
+			phase_ = Phase::enemy;
+
+			Space->SetScale({ 128.0f,64.0f });
+
+			Space->SetPosition({ 10,660 });
+
+			Space->SetAnchorPoint({ 0.0f,0.0f });
+		}
+		break;
+	case Phase::enemy:
+
+		sprite2DReticle_->Update();
+
+		Sousa->Update();
+
+		Space->Update();
+
+		for (int i = 0; i < 5; i++)
+		{
+
+			Enemy[i]->Update();
+		}
+
+		BulletUpdate();
+
+		CameraUpdate();
+
+		CheckAllCollisions();
+
+		if (EnemyDeath[0] == true && EnemyDeath[1] == true && EnemyDeath[2] == true && EnemyDeath[3] == true && EnemyDeath[4] == true)
+		{
+			phase_ = Phase::result;
+
+			Space->SetScale({ 250,100 });
+
+			Space->SetPosition({ 640,600 });
+
+			Space->SetAnchorPoint({ 0.5f,0.5f });
+		}
+		break;
+	case Phase::result:
+
+		Clear->Update();
+
+		Space->Update();
+
+		if (Input::TriggerKey(DIK_SPACE))
+		{
+			phase_ = Phase::title;
+
+			EnemyDeath[0] = false;
+			EnemyDeath[1] = false;
+			EnemyDeath[2] = false;
+			EnemyDeath[3] = false;
+			EnemyDeath[4] = false;
+
+			bullet->SetPosition({ 0.0f,0.0f,0.0f });
+
+			Object3d::SetEye({ 0.0f,0.0f,-50.0f });
+
+			Object3d::SetTarget({ 0.0f,0.0f,0.0f });
+
+			for (int i = 0; i < 5; i++)
+			{
+
+				Enemy[i]->Update();
+			}
+		}
+		break;
 	}
 
-	// カメラ移動
-	if (input->PushKey(DIK_W) || input->PushKey(DIK_S) || input->PushKey(DIK_D) || input->PushKey(DIK_A))
-	{
-		if (input->PushKey(DIK_W)) { Object3d::CameraMoveVector({ 0.0f,+1.0f,0.0f }); }
-		else if (input->PushKey(DIK_S)) { Object3d::CameraMoveVector({ 0.0f,-1.0f,0.0f }); }
-		if (input->PushKey(DIK_D)) { Object3d::CameraMoveVector({ +1.0f,0.0f,0.0f }); }
-		else if (input->PushKey(DIK_A)) { Object3d::CameraMoveVector({ -1.0f,0.0f,0.0f }); }
-	}
-
-	object3d->Update();
 }
 
-void GameScene::Draw()
+void GameScene::CameraUpdate()
 {
-	// コマンドリストの取得
-	ID3D12GraphicsCommandList* cmdList = dxCommon->GetCommandList();
+	XMFLOAT3 eye = Object3d::GetEye();
+	XMFLOAT3 target = Object3d::GetTarget();
+	if (Input::PushKey(DIK_A))
+	{
+		eye.x -= 2;
+		target.x -= 2;
+	}
+	if (Input::PushKey(DIK_W))
+	{
+		eye.y += 2;
+		target.y += 2;
+	}
+	if (Input::PushKey(DIK_S))
+	{
+		eye.y -= 2;
+		target.y -= 2;
+	}
+	if (Input::PushKey(DIK_D))
+	{
+		eye.x += 2;
+		target.x += 2;
+	}
+	Object3d::SetEye(eye);
+	Object3d::SetTarget(target);
 
-#pragma region 背景スプライト描画
-	// 背景スプライト描画前処理
-	Sprite::PreDraw(cmdList);
-	// 背景スプライト描画
-	spriteBG->Draw();
+}
 
-	/// <summary>
-	/// ここに背景スプライトの描画処理を追加できる
-	/// </summary>
+void GameScene::BulletUpdate()
+{
+	if (isBullet == false)
+	{
+		if (Input::TriggerKey(DIK_SPACE))
+		{
+			isBullet = true;
 
-	// スプライト描画後処理
-	Sprite::PostDraw();
-	// 深度バッファクリア
-	dxCommon->ClearDepthBuffer();
-#pragma endregion
+			bullet->SetPosition(Object3d::GetEye());
+		}
+	}
+	if (isBullet == true)
+	{
+		XMFLOAT3 move = bullet->GetPosition();
+		if (move.z >= 60)
+		{
+			isBullet = false;
+		}
+		move.z += 2;
+		bullet->SetPosition(move);
+	}
 
-#pragma region 3Dオブジェクト描画
-	// 3Dオブジェクト描画前処理
-	Object3d::PreDraw(cmdList);
+	bullet->Update();
+}
 
-	// 3Dオブクジェクトの描画
-	object3d->Draw();
+void GameScene::CheckAllCollisions()
+{
+	XMFLOAT3 BulletPos = bullet->GetPosition();
+	for (int i = 0; i < 5; i++)
+	{
+		XMFLOAT3 EnemyPos = Enemy[i]->GetPosition();
 
-	/// <summary>
-	/// ここに3Dオブジェクトの描画処理を追加できる
-	/// </summary>
+		float BulletR = bullet->GetScale().x;
+		float EnemyR = Enemy[i]->GetScale().x;
 
-	// 3Dオブジェクト描画後処理
-	Object3d::PostDraw();
-#pragma endregion
+		float A = pow((EnemyPos.x - BulletPos.x), 2) + pow((EnemyPos.y - BulletPos.y), 2) + pow((EnemyPos.z - BulletPos.z), 2);
+		float B = pow((BulletR + EnemyR), 2);
 
-#pragma region 前景スプライト描画
-	// 前景スプライト描画前処理
-	Sprite::PreDraw(cmdList);
+		if (A <= B)
+		{
+			//���L�����̏Փˎ��R�[���o�b�N���Ăяo��
+			isBullet = false;
+			//�G�e�̏Փˎ��R�[���o�b�N���Ăяo��
+			EnemyDeath[i] = true;
+		}
+	}
+}
 
-	/// <summary>
-	/// ここに前景スプライトの描画処理を追加できる
-	/// </summary>
+void GameScene::ObjectDraw()
+{
+	switch (phase_)
+	{
+	case Phase::title:
+		break;
+	case Phase::enemy:
+		for (int i = 0; i < 5; i++)
+		{
+			if (EnemyDeath[i] == false)
+			{
+				Enemy[i]->Draw();
+			}
+		}
+		if (isBullet == true)
+		{
+			bullet->Draw();
+		}
+		break;
+	case Phase::result:
 
-	// デバッグテキストの描画
-	debugText.DrawAll(cmdList);
+		break;
+	}
+}
 
-	// スプライト描画後処理
-	Sprite::PostDraw();
-#pragma endregion
+void GameScene::SpriteDraw()
+{
+	switch (phase_)
+	{
+	case Phase::title:
+		TitreUI->Draw();
+
+		Space->Draw();
+		break;
+	case Phase::enemy:
+		sprite2DReticle_->Draw();
+
+		Space->Draw();
+
+		Sousa->Draw();
+		break;
+	case Phase::result:
+		Clear->Draw();
+
+		Space->Draw();
+		break;
+	}
 }

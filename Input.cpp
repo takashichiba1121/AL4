@@ -1,65 +1,114 @@
-ï»¿#include "Input.h"
-#include <cassert>
+#include "input.h"
+#include<cassert>
+#pragma comment(lib,"dinput8.lib")
+#pragma comment(lib,"dxguid.lib")
 
-#pragma comment(lib, "dinput8.lib")
+Microsoft::WRL::ComPtr<IDirectInputDevice8> Input::keyboard;
 
-void Input::Initialize(HINSTANCE hInstance, HWND hwnd)
+Microsoft::WRL::ComPtr<IDirectInput8> Input::directInput;
+
+ BYTE Input::key[256];
+
+ BYTE Input::keyPre[256];
+
+ WinApp* Input::winApp_;
+
+void Input::Initialize(WinApp* WinApp)
 {
-	HRESULT result = S_FALSE;
+	//Ø‚è‚Ä‚«‚½WinApp‚ÌƒCƒ“ƒXƒ^ƒ“ƒX‚ğ‹L˜^
+	winApp_ = WinApp;
 
-	// DirectInputã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ç”Ÿæˆ	
-	result = DirectInput8Create(hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&dinput, nullptr);
+	HRESULT result;
+
+	//DirectInput‚Ì‰Šú‰»
+	result = DirectInput8Create(
+		WinApp->GetInstance(), DIRECTINPUT_VERSION, IID_IDirectInput8,
+		(void**)&directInput, nullptr);
 	assert(SUCCEEDED(result));
-
-	// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ãƒ‡ãƒã‚¤ã‚¹ã®ç”Ÿæˆ	
-	result = dinput->CreateDevice(GUID_SysKeyboard, &devkeyboard, NULL);
+	//ƒL[ƒ{[ƒhƒfƒoƒCƒX‚Ì¶¬
+	/*ComPtr<IDirectInputDevice8> keyboard = nullptr;*/
+	result = directInput->CreateDevice(GUID_SysKeyboard, &keyboard, NULL);
 	assert(SUCCEEDED(result));
-
-	// å…¥åŠ›ãƒ‡ãƒ¼ã‚¿å½¢å¼ã®ã‚»ãƒƒãƒˆ
-	result = devkeyboard->SetDataFormat(&c_dfDIKeyboard); // æ¨™æº–å½¢å¼
+	//“ü—Íƒf[ƒ^Œ`®‚ÌƒZƒbƒg
+	result = keyboard->SetDataFormat(&c_dfDIKeyboard);//•W€Œ`®
 	assert(SUCCEEDED(result));
-
-	// æ’ä»–åˆ¶å¾¡ãƒ¬ãƒ™ãƒ«ã®ã‚»ãƒƒãƒˆ
-	result = devkeyboard->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE | DISCL_NOWINKEY);
-	assert(SUCCEEDED(result));
-
+	//”r‘¼§ŒäƒŒƒxƒ‹‚ÌƒZƒbƒg
+	result = keyboard->SetCooperativeLevel(
+		WinApp->GetHwnd(), DISCL_FOREGROUND | DISCL_NONEXCLUSIVE | DISCL_NOWINKEY);
+	assert(SUCCEEDED(result)); 
 }
 
 void Input::Update()
 {
-	devkeyboard->Acquire();	// ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰å‹•ä½œé–‹å§‹
-
-	// å‰å›ã®ã‚­ãƒ¼å…¥åŠ›ã‚’ä¿å­˜
+	//‘O‰ñ‚ÌƒL[“ü—Í‚ğ•Û‘¶
 	memcpy(keyPre, key, sizeof(key));
 
-	// ã‚­ãƒ¼ã®å…¥åŠ›
-	devkeyboard->GetDeviceState(sizeof(key), key);
+	//ƒL[ƒ{[ƒhî•ñ‚Ìæ“¾ŠJn
+	keyboard->Acquire();
+	//‘SƒL[‚Ì“ü—Íó‘Ô‚ğæ“¾‚·‚é
+	keyboard->GetDeviceState(sizeof(key), key);
 }
 
 bool Input::PushKey(BYTE keyNumber)
 {
-	// ç•°å¸¸ãªå¼•æ•°ã‚’æ¤œå‡º
-	assert(0 <= keyNumber && keyNumber <= 256);
-
-	// 0ã§ãªã‘ã‚Œã°æŠ¼ã—ã¦ã„ã‚‹
+	//w’èƒL[‚ğ‰Ÿ‚µ‚Ä‚¢‚ê‚Îtrue‚ğ•Ô‚·
 	if (key[keyNumber]) {
 		return true;
 	}
-
-	// æŠ¼ã—ã¦ã„ãªã„
+	//‚»‚¤‚Å‚È‚¯‚ê‚Îfalse•Ô‚·
 	return false;
 }
 
 bool Input::TriggerKey(BYTE keyNumber)
 {
-	// ç•°å¸¸ãªå¼•æ•°ã‚’æ¤œå‡º
-	assert(0 <= keyNumber && keyNumber <= 256);
-
-	// å‰å›ãŒ0ã§ã€ä»Šå›ãŒ0ã§ãªã‘ã‚Œã°ãƒˆãƒªã‚¬ãƒ¼
-	if (!keyPre[keyNumber] && key[keyNumber]) {
+	//w’èƒL[‚ğ‰Ÿ‚µ‚Ä‚¢‚ê‚Îtrue‚ğ•Ô‚·
+	if (key[keyNumber]&&keyPre[keyNumber]==0) {
 		return true;
 	}
-
-	// ãƒˆãƒªã‚¬ãƒ¼ã§ãªã„
+	//‚»‚¤‚Å‚È‚¯‚ê‚Îfalse•Ô‚·
 	return false;
+}
+
+//ƒQ[ƒ€ƒpƒbƒh
+
+DWORD Input::Updatekeypad(DWORD dwUserIndex)
+{
+	return XInputGetState(
+		dwUserIndex,//•¡”‚Â‚È‚ª‚ê‚Ä‚é‚Æ‚«‚Ì‘I‘ğ
+		&gamePad);//‚±‚Ì•Ï”‚É“ü—Íó‹µ‚ªŠi”[‚³‚ê‚é
+}
+
+float Input::PadAnalogStickLX()
+{
+	return (float)gamePad.Gamepad.sThumbLX / SHRT_MAX;
+}
+
+float Input::PadAnalogStickLY()
+{
+	return (float)gamePad.Gamepad.sThumbLY / SHRT_MAX;
+}
+
+float Input::PadAnalogStickRX()
+{
+	return (float)gamePad.Gamepad.sThumbRX / SHRT_MAX;
+}
+
+float Input::PadAnalogStickRY()
+{
+	return (float)gamePad.Gamepad.sThumbRY / SHRT_MAX;
+}
+
+float Input::PadLTrigger()
+{
+	return (float)gamePad.Gamepad.bLeftTrigger / 255;
+}
+
+float Input::PadRTrigger()
+{
+	return (float)gamePad.Gamepad.bRightTrigger / 255;
+}
+
+bool Input::PadKey(int button)
+{
+	return gamePad.Gamepad.wButtons & button;
 }

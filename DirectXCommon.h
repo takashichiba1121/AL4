@@ -1,141 +1,71 @@
-﻿#pragma once
+#pragma once
+#include<d3d12.h>
+#include<dxgi1_6.h>
+#include<wrl.h>
+#include<vector>
+#include"WinApp.h"
+#include<chrono>
 
-#include <Windows.h>
-#include <cstdlib>
-#include <d3d12.h>
-#include <d3dx12.h>
-#include <dxgi1_6.h>
-#include <wrl.h>
+class DirectXCommon
+{
+public://�����o�֐�
+	//������
+	void Initialize(WinApp* WinApp);
 
-#include "WinApp.h"
+	void InitializeDevice();
 
-/// <summary>
-/// DirectX汎用
-/// </summary>
-class DirectXCommon {
-  public: // メンバ関数
-
-	/// <summary>
-	/// シングルトンインスタンスの取得
-	/// </summary>
-	/// <returns></returns>
-	static DirectXCommon* GetInstance();
-		  
-	/// <summary>
-	/// 初期化
-	/// </summary>
-	void Initialize(
-	  WinApp* win, int32_t backBufferWidth = WinApp::kWindowWidth,
-	  int32_t backBufferHeight = WinApp::kWindowHeight);
-
-	/// <summary>
-	/// 後始末
-	/// </summary>
-	void Finalize();
-
-	/// <summary>
-	/// 描画前処理
-	/// </summary>
-	void PreDraw();
-
-	/// <summary>
-	/// 描画後処理
-	/// </summary>
-	void PostDraw();
-
-	/// <summary>
-	/// レンダーターゲットのクリア
-	/// </summary>
-	void ClearRenderTarget();
-
-	/// <summary>
-	/// 深度バッファのクリア
-	/// </summary>
-	void ClearDepthBuffer();
-
-	/// <summary>
-	/// デバイスの取得
-	/// </summary>
-	/// <returns>デバイス</returns>
-	ID3D12Device* GetDevice() const { return device_.Get(); }
-
-	/// <summary>
-	/// 描画コマンドリストの取得
-	/// </summary>
-	/// <returns>描画コマンドリスト</returns>
-	ID3D12GraphicsCommandList* GetCommandList() const { return commandList_.Get(); }
-
-	/// <summary>
-	/// バックバッファの幅取得
-	/// </summary>
-	/// <returns>バックバッファの幅</returns>
-	int32_t GetBackBufferWidth() const;
-
-	/// <summary>
-	/// バックバッファの高さ取得
-	/// </summary>
-	/// <returns>バックバッファの高さ</returns>
-	int32_t GetBackBufferHeight() const;
-
-  private: // メンバ変数
-	// ウィンドウズアプリケーション管理
-	WinApp* winApp_;
-
-	// Direct3D関連
-	Microsoft::WRL::ComPtr<IDXGIFactory7> dxgiFactory_;
-	Microsoft::WRL::ComPtr<ID3D12Device> device_;
-	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList_;
-	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator_;
-	Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue_;
-	Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain_;
-	std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> backBuffers_;
-	Microsoft::WRL::ComPtr<ID3D12Resource> depthBuffer_;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvHeap_;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvHeap_;
-	Microsoft::WRL::ComPtr<ID3D12Fence> fence_;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> imguiHeap_;
-	UINT64 fenceVal_ = 0;
-	int32_t backBufferWidth_ = 0;
-	int32_t backBufferHeight_ = 0;
-
-  private: // メンバ関数
-	DirectXCommon() = default;
-	~DirectXCommon() = default;
-	DirectXCommon(const DirectXCommon&) = delete;
-	const DirectXCommon& operator=(const DirectXCommon&) = delete;
-		   
-	/// <summary>
-	/// DXGIデバイス初期化
-	/// </summary>
-	void InitializeDXGIDevice();
-
-	/// <summary>
-	/// スワップチェーンの生成
-	/// </summary>
-	void CreateSwapChain();
-
-	/// <summary>
-	/// コマンド関連初期化
-	/// </summary>
 	void InitializeCommand();
 
-	/// <summary>
-	/// レンダーターゲット生成
-	/// </summary>
-	void CreateFinalRenderTargets();
+	void InitializeSwapchain();
 
-	/// <summary>
-	/// 深度バッファ生成
-	/// </summary>
-	void CreateDepthBuffer();
+	void InitializeRenderTargetView();
 
-	/// <summary>
-	/// フェンス生成
-	/// </summary>
-	void CreateFence();
+	void InitializeDepthBuffer();
 
-	/// <summary>
-	/// imgui初期化
-	/// </summary>
-	void InitImgui();
+	void IntializeFence();
+
+	void PreDraw();
+
+	void PostDrow();
+
+	//�f�o�C�X�擾
+	ID3D12Device* GetDevice() const { return device.Get(); }
+
+	//�R�}���h���X�g�擾
+	ID3D12GraphicsCommandList* GetCommandList() const { return commandList.Get(); }
+
+	WinApp* getWinApp() const { return winApp_; }
+private://�����o�֐�
+	//FPS�Œ菉����
+	void InitializeFixFPS();
+
+	//FPS�Œ�X�V
+	void UpdateFixFPS();
+
+private:
+
+	HRESULT result;
+	Microsoft::WRL::ComPtr<ID3D12Device> device;
+	Microsoft::WRL::ComPtr<IDXGIFactory7> dxgiFactory;
+	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> comdAllocator = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue = nullptr;
+	Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvHeap = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvHeap = nullptr;
+	std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> backBuffers;
+	Microsoft::WRL::ComPtr<ID3D12Fence> fence = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Resource> depthBuff = nullptr;
+
+	UINT64 fenceVal = 0;
+	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
+	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{};
+	D3D12_RESOURCE_BARRIER barrierDesc{};
+
+	//�L�^����(FPS�Œ�p)
+	std::chrono::steady_clock::time_point reference_;
+
+	//WindowsAPI
+	WinApp* winApp_ = nullptr;
 };
+
