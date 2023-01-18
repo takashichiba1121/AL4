@@ -15,6 +15,9 @@ GameScene::~GameScene()
 	delete Space;
 	delete sprite2DReticle_;
 	delete bullet;
+	delete Clear;
+	delete Sousa;
+	delete playerBullet;
 }
 
 void GameScene::Initialize(GameScene* gameScene)
