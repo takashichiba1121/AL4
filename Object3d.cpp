@@ -195,20 +195,9 @@ Object3d* Object3d::Create() {
 		return nullptr;
 	}
 
-void Object3d::CreateModel()
-{
-	HRESULT result = S_FALSE;
-
-	//ファイルストリーム
-	std::fstream file;
-	//.objファイルを開く
-	/*file.open("Resources/triangle_tex/triangle_tex.obj");*/
-	const string modelname = "tire";
-	const string filename = modelname + ".obj";//triangle_mat.obj
-	const string directoryPath = "Resources/" + modelname + "/";//Resources/triangle_mat/
-	file.open(directoryPath+filename);//Resources/triangle_mat/triangle_mat.obj
-	//ファイルオープン失敗をチェック
-	if (file.fail()) {
+	// 初期化
+	if (!object3d->Initialize()) {
+		delete object3d;
 		assert(0);
 		return nullptr;
 	}
