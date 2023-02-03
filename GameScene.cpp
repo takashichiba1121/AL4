@@ -1,5 +1,8 @@
 ﻿#include "GameScene.h"
+#include "Model.h"
 #include <cassert>
+#include <sstream>
+#include <iomanip>
 
 using namespace DirectX;
 
@@ -10,7 +13,13 @@ GameScene::GameScene()
 GameScene::~GameScene()
 {
 	delete spriteBG;
-	delete object3d;
+	delete objSkydome;
+	delete objGround;
+	delete objFighter;
+	delete modelSkydome;
+	delete modelGround;
+	delete modelFighter;
+	delete camera;
 }
 
 void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
@@ -30,41 +39,46 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	// テクスチャ読み込み
 	Sprite::LoadTexture(1, L"Resources/background.png");
 
+    // カメラ生成
+	camera = new DebugCamera(WinApp::kWindowWidth, WinApp::kWindowHeight, input);
+
+	// カメラ注視点をセット
+	camera->SetTarget({0, 1, 0});
+	camera->SetDistance(3.0f);
+
+    // 3Dオブジェクトにカメラをセット
+	Object3d::SetCamera(camera);
+
 	// 背景スプライト生成
 	spriteBG = Sprite::Create(1, { 0.0f,0.0f });
 	// 3Dオブジェクト生成
-	object3d = Object3d::Create();
-	object3d->Update();
+	objSkydome = Object3d::Create();
+	objGround = Object3d::Create();
+	objFighter = Object3d::Create();
+
+	// テクスチャ2番に読み込み
+	Sprite::LoadTexture(2, L"Resources/texture.png");
+
+	modelSkydome = Model::CreateFromOBJ("skydome");
+	modelGround = Model::CreateFromOBJ("ground");
+	modelFighter = Model::CreateFromOBJ("chr_sword");
+
+	objSkydome->SetModel(modelSkydome);
+	objGround->SetModel(modelGround);
+	objFighter->SetModel(modelFighter);
 }
 
 void GameScene::Update()
 {
-	// オブジェクト移動
-	if (input->PushKey(DIK_UP) || input->PushKey(DIK_DOWN) || input->PushKey(DIK_RIGHT) || input->PushKey(DIK_LEFT))
-	{
-		// 現在の座標を取得
-		XMFLOAT3 position = object3d->GetPosition();
+	camera->Update();
 
-		// 移動後の座標を計算
-		if (input->PushKey(DIK_UP)) { position.y += 1.0f; }
-		else if (input->PushKey(DIK_DOWN)) { position.y -= 1.0f; }
-		if (input->PushKey(DIK_RIGHT)) { position.x += 1.0f; }
-		else if (input->PushKey(DIK_LEFT)) { position.x -= 1.0f; }
+	objSkydome->Update();
+	objGround->Update();
+	objFighter->Update();
 
-		// 座標の変更を反映
-		object3d->SetPosition(position);
-	}
-
-	// カメラ移動
-	if (input->PushKey(DIK_W) || input->PushKey(DIK_S) || input->PushKey(DIK_D) || input->PushKey(DIK_A))
-	{
-		if (input->PushKey(DIK_W)) { Object3d::CameraMoveVector({ 0.0f,+1.0f,0.0f }); }
-		else if (input->PushKey(DIK_S)) { Object3d::CameraMoveVector({ 0.0f,-1.0f,0.0f }); }
-		if (input->PushKey(DIK_D)) { Object3d::CameraMoveVector({ +1.0f,0.0f,0.0f }); }
-		else if (input->PushKey(DIK_A)) { Object3d::CameraMoveVector({ -1.0f,0.0f,0.0f }); }
-	}
-
-	object3d->Update();
+	debugText.Print("AD: move camera LeftRight", 50, 50, 1.0f);
+	debugText.Print("WS: move camera UpDown", 50, 70, 1.0f);
+	debugText.Print("ARROW: move camera FrontBack", 50, 90, 1.0f);
 }
 
 void GameScene::Draw()
@@ -76,7 +90,7 @@ void GameScene::Draw()
 	// 背景スプライト描画前処理
 	Sprite::PreDraw(cmdList);
 	// 背景スプライト描画
-	spriteBG->Draw();
+	//spriteBG->Draw();
 
 	/// <summary>
 	/// ここに背景スプライトの描画処理を追加できる
@@ -93,7 +107,9 @@ void GameScene::Draw()
 	Object3d::PreDraw(cmdList);
 
 	// 3Dオブクジェクトの描画
-	object3d->Draw();
+	objSkydome->Draw();
+	objGround->Draw();
+	objFighter->Draw();
 
 	/// <summary>
 	/// ここに3Dオブジェクトの描画処理を追加できる
@@ -110,6 +126,10 @@ void GameScene::Draw()
 	/// <summary>
 	/// ここに前景スプライトの描画処理を追加できる
 	/// </summary>
+
+	//// 描画
+	//sprite1->Draw();
+	//sprite2->Draw();
 
 	// デバッグテキストの描画
 	debugText.DrawAll(cmdList);
