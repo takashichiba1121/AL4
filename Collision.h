@@ -32,9 +32,20 @@ public:
 	///</summary>
 	///<param name="point">球</param>
 	///<param name="triangle">三角形</param>
-	///<param name="closest">交点(三角形上の最近接点)</param>
+	///<param name="inter">交点(三角形上の最近接点)</param>
 	///<returns>交差してるか否か</retuns>
 	static bool CheckSphere2Triangle(const Sphere& sphere, const Triangle&
 		triangle, DirectX::XMVECTOR* inter = nullptr);
+
+	///<summary>
+	///レイとの平面当たり判定
+	///</summary>
+	///<param name="ray">レイ</param>
+	///<param name="plane">平面</param>
+	///<param name="distance">距離(出力用)</param>
+	///<param name="inter">交点(出力用)</param>
+	///<returns>交差してるか否か</retuns>
+	static bool CheckRay2Plane(const Ray& Ray, const Plane&plane,
+		float* distnce=nullptr , DirectX::XMVECTOR* inter = nullptr);
 };
 

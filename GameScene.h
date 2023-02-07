@@ -76,4 +76,6 @@ class GameScene {
 	Plane plane;
 	//三角形
 	Triangle triangle;
+	//当たり判定　レイ
+	Ray ray;
 };
