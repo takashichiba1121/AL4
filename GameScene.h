@@ -74,4 +74,6 @@ class GameScene {
 	Sphere sphere;
 	//当たり判定　平面
 	Plane plane;
+	//三角形
+	Triangle triangle;
 };
