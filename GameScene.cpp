@@ -42,14 +42,14 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	// テクスチャ読み込み
 	Sprite::LoadTexture(1, L"Resources/background.png");
 
-    // カメラ生成
+	// カメラ生成
 	camera = new DebugCamera(WinApp::kWindowWidth, WinApp::kWindowHeight, input);
 
 	// カメラ注視点をセット
-	camera->SetTarget({0, 1, 0});
+	camera->SetTarget({ 0, 1, 0 });
 	camera->SetDistance(3.0f);
 
-    // 3Dオブジェクトにカメラをセット
+	// 3Dオブジェクトにカメラをセット
 	Object3d::SetCamera(camera);
 
 	// 背景スプライト生成
@@ -71,7 +71,7 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	objFighter->SetModel(modelFighter);
 
 	//球の初期値を設定
-	sphere.center = XMVectorSet(0,2,0,1);//中心座標
+	sphere.center = XMVectorSet(0, 2, 0, 1);//中心座標
 	sphere.radius = 1.0f;//半径
 
 	//球の初期値を設定
@@ -80,13 +80,13 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 
 
 	//三角形の初期化を設定
-	triangle.p0 = XMVectorSet(-1.0f,0,-1.0f,1);//左手前
+	triangle.p0 = XMVectorSet(-1.0f, 0, -1.0f, 1);//左手前
 	triangle.p1 = XMVectorSet(-1.0f, 0, +1.0f, 1);//右奥
 	triangle.p2 = XMVectorSet(+1.0f, 0, -1.0f, 1);//右手前
 	triangle.normal = XMVectorSet(0.0f, 1.0f, 0.0f, 1);//上向き
 
 	//レイの初期値を設定
-	ray.start = XMVectorSet(0,1,0,1);//原点やや上
+	ray.start = XMVectorSet(0, 1, 0, 1);//原点やや上
 	ray.dir = XMVectorSet(0, -1, 0, 0);//下向き
 }
 
@@ -111,7 +111,7 @@ void GameScene::Update()
 
 	//レイ移動
 	{
-		XMVECTOR moveZ = XMVectorSet(0,0, 0.01f, 0);
+		XMVECTOR moveZ = XMVectorSet(0, 0, 0.01f, 0);
 		if (input->PushKey(DIK_NUMPAD8)) { ray.start += moveZ; }
 		else if (input->PushKey(DIK_NUMPAD2)) { ray.start -= moveZ; }
 
@@ -126,7 +126,7 @@ void GameScene::Update()
 			<< ray.start.m128_f32[1] << ","
 			<< ray.start.m128_f32[2] << ")";
 
-		debugText.Print(raystr.str(),50,180,1.0f);
+		debugText.Print(raystr.str(), 50, 180, 1.0f);
 	}
 
 	////球と平面の当たり判定
@@ -203,18 +203,44 @@ void GameScene::Update()
 	//	debugText.Print(raystr.str(), 50, 220, 1.0f);
 	//}
 
-	//レイと三角形の当たり判定
-	XMVECTOR inter;
-	float distance;
-	bool hit = Collision::CheckRay2Triangle(ray, triangle,&distance, &inter);
-	if (hit)
+	////レイと三角形の当たり判定
+	//XMVECTOR inter;
+	//float distance;
+	//bool hit = Collision::CheckRay2Triangle(ray, triangle,&distance, &inter);
+	//if (hit)
+	//{
+	//	debugText.Print("HIT", 50, 200, 1.0f);
+	//	//stringstreamをリセットし、交点座標を埋め込む
+	//	std::ostringstream raystr;
+	//	raystr.str("");
+	//	raystr.clear();
+	//	raystr << "("
+	//		<< std::fixed << std::setprecision(2)
+	//		<< inter.m128_f32[0] << ","
+	//		<< inter.m128_f32[1] << ","
+	//		<< inter.m128_f32[2] << ")";
+
+	//	debugText.Print(raystr.str(), 50, 220, 1.0f);
+
+	//	raystr.str("");
+	//	raystr.clear();
+	//	raystr << "("
+	//		<< std::fixed << std::setprecision(2) << distance << ")";
+
+	//	debugText.Print(raystr.str(), 50, 240, 1.0f);
+	//}
 	{
-		debugText.Print("HIT", 50, 200, 1.0f);
-		//stringstreamをリセットし、交点座標を埋め込む
+		//レイと球の当たり判定
+		float distance;
+		XMVECTOR inter;
+		bool hit = Collision::CheckRay2Sphere(ray, sphere, &distance, &inter);
+		if (hit) {
+			debugText.Print("HIT", 50, 260, 1.0f);
+			//stringstreamをリセットし、交点座標を埋め込む
 		std::ostringstream raystr;
 		raystr.str("");
 		raystr.clear();
-		raystr << "("
+		raystr << "inter:("
 			<< std::fixed << std::setprecision(2)
 			<< inter.m128_f32[0] << ","
 			<< inter.m128_f32[1] << ","
@@ -228,12 +254,13 @@ void GameScene::Update()
 			<< std::fixed << std::setprecision(2) << distance << ")";
 
 		debugText.Print(raystr.str(), 50, 240, 1.0f);
+		}
+
 	}
 
-
-	debugText.Print("AD: move camera LeftRight", 50, 50, 1.0f);
-	debugText.Print("WS: move camera UpDown", 50, 70, 1.0f);
-	debugText.Print("ARROW: move camera FrontBack", 50, 90, 1.0f);
+		debugText.Print("AD: move camera LeftRight", 50, 50, 1.0f);
+		debugText.Print("WS: move camera UpDown", 50, 70, 1.0f);
+		debugText.Print("ARROW: move camera FrontBack", 50, 90, 1.0f);
 }
 
 void GameScene::Draw()
