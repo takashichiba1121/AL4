@@ -1,66 +1,105 @@
-ï»¿#include "WinApp.h"
-#include "DirectXCommon.h"
-#include "GameScene.h"
+#include"object3d.h"
+#include"input.h"
+#include"WinApp.h"
+#include"DirectXCommon.h"
+#include"SpriteCommon.h"
+#include"Sprite.h"
+#include"Texture.h"
+#include"Audio.h"
+#include"imguiManager.h"
+#include<imgui.h>
+#include"GameScene.h"
 
-// Windowsã‚¢ãƒ—ãƒªã§ã®ã‚¨ãƒ³ãƒˆãƒªãƒ¼ãƒã‚¤ãƒ³ãƒˆ(mainé–¢æ•°)
-int WINAPI WinMain(HINSTANCE,HINSTANCE,LPSTR,int)
-{
-	// æ±Žç”¨æ©Ÿèƒ½
-	WinApp* win = nullptr;
+using namespace DirectX;
+using namespace std;
+
+//windowsƒAƒvƒŠ‚ÌƒGƒ“ƒgƒŠ[ƒ|ƒCƒ“ƒgimainŠÖ”j
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
+
+	WinApp* winApp = nullptr;
+	winApp = new WinApp;
+	winApp->Initialize();
+
+	MSG msg{};
+
 	DirectXCommon* dxCommon = nullptr;
-	Input* input = nullptr;	
-	GameScene* gameScene = nullptr;
+	dxCommon = new DirectXCommon();
+	dxCommon->Initialize(winApp);
 
-	// ã‚²ãƒ¼ãƒ ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ä½œæˆ
-	win = WinApp::GetInstance();
-	win->CreateGameWindow();
-		
-	// DirectXåˆæœŸåŒ–å‡¦ç†
-	dxCommon = DirectXCommon::GetInstance();
-	dxCommon->Initialize(win);
+	//DirectX‰Šú‰»ˆ—@‚±‚±‚©‚ç
 
-#pragma region æ±Žç”¨æ©Ÿèƒ½åˆæœŸåŒ–
-	// å…¥åŠ›ã®åˆæœŸåŒ–
-	input = new Input();
-	input->Initialize(win->GetHInstance(), win->GetHwnd());
+	Input::Initialize(winApp);
 
-	// ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆé™çš„åˆæœŸåŒ–
-	Sprite::StaticInitialize(dxCommon->GetDevice(), WinApp::kWindowWidth, WinApp::kWindowHeight);
-	
-	// 3Dã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆé™çš„åˆæœŸåŒ–
-	Object3d::StaticInitialize(dxCommon->GetDevice());
-#pragma endregion
+	SpriteCommon* spriteCommon = nullptr;
+	spriteCommon = new SpriteCommon;
+	spriteCommon->Initialize(dxCommon);
 
-	// ã‚²ãƒ¼ãƒ ã‚·ãƒ¼ãƒ³ã®åˆæœŸåŒ–
-	gameScene = new GameScene();
-	gameScene->Initialize(dxCommon, input);
-	
-	// ãƒ¡ã‚¤ãƒ³ãƒ«ãƒ¼ãƒ—
-	while (true)
-	{
-		// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å‡¦ç†
-		if (win->ProcessMessage()) {	break; }
+	Texture::Initialize(dxCommon->GetDevice());
 
-		// å…¥åŠ›é–¢é€£ã®æ¯Žãƒ•ãƒ¬ãƒ¼ãƒ å‡¦ç†
-		input->Update();
-		// ã‚²ãƒ¼ãƒ ã‚·ãƒ¼ãƒ³ã®æ¯Žãƒ•ãƒ¬ãƒ¼ãƒ å‡¦ç†
+	Sprite::StaticInitialize(spriteCommon);
+
+	Model::SetDevice(dxCommon->GetDevice());
+
+	Object3d::StaticInitialize(dxCommon->GetDevice(), WinApp::window_width, WinApp::window_heigit);
+
+	Sound::StaticInitialize();
+
+	imguiManager::StaticInitialize(winApp, dxCommon);
+
+	GameScene* gameScene = new GameScene;
+	gameScene->Initialize();
+
+	//ƒQ[ƒ€ƒ‹[ƒv
+	while (true) {
+
+		//~ƒ{ƒ^ƒ“‚ÅI—¹ƒƒbƒZ[ƒW‚ª‚«‚½‚çƒQ[ƒ€ƒ‹[ƒv‚ð”²‚¯‚é
+		if (winApp->ProcessMessage()) {
+			break;
+		}
+		//DirectX–ˆƒtƒŒ[ƒ€ˆ—@‚±‚±‚©‚ç
+
+		//“ü—Í‚ÌXV
+		Input::Update();
+
 		gameScene->Update();
 
-		// æç”»é–‹å§‹
+		//•`‰æƒRƒ}ƒ“ƒh‚±‚±‚©‚ç
 		dxCommon->PreDraw();
-		// ã‚²ãƒ¼ãƒ ã‚·ãƒ¼ãƒ³ã®æç”»
-		gameScene->Draw();
-		// æç”»çµ‚äº†
-		dxCommon->PostDraw();
-	}
-	// å„ç¨®è§£æ”¾
-	delete gameScene;
-	delete input;
 
-	// DirectXçµ‚äº†å‡¦ç†
-	dxCommon->Finalize();
-	// ã‚²ãƒ¼ãƒ ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ç ´æ£„
-	win->TerminateGameWindow();
+		Object3d::PreDraw(dxCommon->GetCommandList());
+
+		gameScene->Draw();
+
+		Object3d::PostDraw();
+
+
+		spriteCommon->PreDraw();
+
+		gameScene->SpriteDraw();
+
+		spriteCommon->PostDrow();
+
+		//•`‰æƒRƒ}ƒ“ƒh‚±‚±‚Ü‚Å
+
+		imguiManager::Draw();
+
+		dxCommon->PostDrow();
+
+		//DirectX–ˆƒtƒŒ[ƒ€ˆ—@‚±‚±‚Ü‚Å
+
+	}
+
+	delete gameScene;
+
+	delete spriteCommon;
+
+	imguiManager::Finalize();
+
+	delete dxCommon;
+
+	winApp->Finalize();
+
+	delete winApp;
 
 	return 0;
 }
