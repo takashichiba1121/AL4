@@ -153,19 +153,19 @@ bool Collision::CheckRay2Triangle(const Ray& ray, const Triangle& triangle, floa
 	XMVECTOR m;
 	//•Óp0_p1‚É‚Â‚¢‚Ä
 	XMVECTOR pt_p0 = triangle.p0 - interPlane;
-	XMVECTOR p0_p1 = triangle.p1 - triangle.p1;
+	XMVECTOR p0_p1 = triangle.p1 - triangle.p0;
 	m = XMVector3Cross(pt_p0,p0_p1);
 	//•Ó‚ÌŠO‘¤‚Å‚ ‚ê‚Î“–‚½‚Á‚Ä‚¢‚È‚¢‚Ì‚Å”»’è‚ğ‘Å‚¿Ø‚é
 	if (XMVector3Dot(m, triangle.normal).m128_f32[0] < -epsilon) { return false; }
 	//•Óp1_p2‚É‚Â‚¢‚Ä
 	XMVECTOR pt_p1 = triangle.p1 - interPlane;
-	XMVECTOR p1_p2 = triangle.p1 - triangle.p2;
+	XMVECTOR p1_p2 = triangle.p2 - triangle.p1;
 	m = XMVector3Cross(pt_p1, p1_p2);
 	//•Ó‚ÌŠO‘¤‚Å‚ ‚ê‚Î“–‚½‚Á‚Ä‚¢‚È‚¢‚Ì‚Å”»’è‚ğ‘Å‚¿Ø‚é
 	if (XMVector3Dot(m, triangle.normal).m128_f32[0] < -epsilon) { return false; }
 	//•Óp0_p1‚É‚Â‚¢‚Ä
 	XMVECTOR pt_p2 = triangle.p2 - interPlane;
-	XMVECTOR p2_p0 = triangle.p2 - triangle.p0;
+	XMVECTOR p2_p0 = triangle.p0 - triangle.p2;
 	m = XMVector3Cross(pt_p2, p2_p0);
 	//•Ó‚ÌŠO‘¤‚Å‚ ‚ê‚Î“–‚½‚Á‚Ä‚¢‚È‚¢‚Ì‚Å”»’è‚ğ‘Å‚¿Ø‚é
 	if (XMVector3Dot(m, triangle.normal).m128_f32[0] < -epsilon) { return false; }
@@ -198,5 +198,5 @@ bool Collision::CheckRay2Sphere(const Ray& ray, const Sphere& sphere, float* dis
 
 	if (inter) { *inter = ray.start + t * ray.dir; }
 
-	return false;
+	return true;
 }

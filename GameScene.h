@@ -65,10 +65,12 @@ class GameScene {
 	Model* modelSkydome = nullptr;
 	Model* modelGround = nullptr;
 	Model* modelFighter = nullptr;
+	Model* modelRay = nullptr;
 
 	Object3d* objSkydome = nullptr;
 	Object3d* objGround = nullptr;
 	Object3d* objFighter = nullptr;
+	Object3d* objRay = nullptr;
 
 	//当たり判定￥　球
 	Sphere sphere;
@@ -78,4 +80,6 @@ class GameScene {
 	Triangle triangle;
 	//当たり判定　レイ
 	Ray ray;
+
+	int scene=0;
 };
