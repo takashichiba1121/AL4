@@ -62,14 +62,14 @@ class GameScene {
 	/// </summary>
 	Sprite* spriteBG = nullptr;
 
-	Model* modelSkydome = nullptr;
+	Model* modelTriangle = nullptr;
 	Model* modelGround = nullptr;
-	Model* modelFighter = nullptr;
+	Model* modelSphere = nullptr;
 	Model* modelRay = nullptr;
 
-	Object3d* objSkydome = nullptr;
+	Object3d* objTriangle = nullptr;
 	Object3d* objGround = nullptr;
-	Object3d* objFighter = nullptr;
+	Object3d* objSphere = nullptr;
 	Object3d* objRay = nullptr;
 
 	//当たり判定￥　球

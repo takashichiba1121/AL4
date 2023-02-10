@@ -16,13 +16,13 @@ GameScene::GameScene()
 GameScene::~GameScene()
 {
 	delete spriteBG;
-	delete objSkydome;
+	delete objTriangle;
 	delete objGround;
-	delete objFighter;
+	delete objSphere;
 	delete objRay;
-	delete modelSkydome;
+	delete modelTriangle;
 	delete modelGround;
-	delete modelFighter;
+	delete modelSphere;
 	delete modelRay;
 	delete camera;
 }
@@ -57,22 +57,22 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	// 背景スプライト生成
 	spriteBG = Sprite::Create(1, { 0.0f,0.0f });
 	// 3Dオブジェクト生成
-	objSkydome = Object3d::Create();
+	objTriangle = Object3d::Create();
 	objGround = Object3d::Create();
-	objFighter = Object3d::Create();
+	objSphere = Object3d::Create();
 	objRay = Object3d::Create();
 
 	// テクスチャ2番に読み込み
 	Sprite::LoadTexture(2, L"Resources/texture.png");
 
-	modelSkydome = Model::CreateFromOBJ("triangle_mat");
+	modelTriangle = Model::CreateFromOBJ("triangle_mat");
 	modelGround = Model::CreateFromOBJ("ground");
-	modelFighter = Model::CreateFromOBJ("playerbullet");
+	modelSphere = Model::CreateFromOBJ("playerbullet");
 	modelRay = Model::CreateFromOBJ("cube");
 
-	objSkydome->SetModel(modelSkydome);
+	objTriangle->SetModel(modelTriangle);
 	objGround->SetModel(modelGround);
-	objFighter->SetModel(modelFighter);
+	objSphere->SetModel(modelSphere);
 	objRay->SetModel(modelRay);
 
 	objRay->SetScale({ 0.5f,0.5f,0.5f });
@@ -331,14 +331,14 @@ void GameScene::Update()
 	}
 	break;
 	}
-	objFighter->SetPosition({ sphere.center.m128_f32[0], sphere.center.m128_f32[1] ,sphere.center.m128_f32[2] });
-	objSkydome->SetPosition({ 0,1,0 });
+	objSphere->SetPosition({ sphere.center.m128_f32[0], sphere.center.m128_f32[1] ,sphere.center.m128_f32[2] });
+	objTriangle->SetPosition({ 0,1,0 });
 	objRay->SetPosition({ ray.start.m128_f32[0], ray.start.m128_f32[1] ,ray.start.m128_f32[2] });
 
 
-	objSkydome->Update();
+	objTriangle->Update();
 	objGround->Update();
-	objFighter->Update();
+	objSphere->Update();
 	objRay->Update();
 
 		debugText.Print("AD: move camera LeftRight", 50, 50, 1.0f);
@@ -375,12 +375,12 @@ void GameScene::Draw()
 	switch (scene)
 	{
 	case 0:
-		objFighter->Draw();
+		objSphere->Draw();
 		objGround->Draw();
 		break;
 	case 1:
-		objFighter->Draw();
-		objSkydome->Draw();
+		objSphere->Draw();
+		objTriangle->Draw();
 		break;
 	case 2:
 		objRay->Draw();
@@ -388,11 +388,11 @@ void GameScene::Draw()
 		break;
 	case 3:
 		objRay->Draw();
-		objSkydome->Draw();
+		objTriangle->Draw();
 		break;
 	case 4:
 		objRay->Draw();
-		objFighter->Draw();
+		objSphere->Draw();
 		break;
 	}
 
